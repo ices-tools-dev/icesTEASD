@@ -5,6 +5,6 @@ account: ices-tools-dev
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11266400
-bundleId: 8272523
+bundleId: 8272610
 url: https://ices-tools-dev.shinyapps.io/icesTEASD/
 version: 1

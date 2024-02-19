@@ -1,2 +1,3 @@
 
-utils::globalVariables(c("Purpose", "YearOfNextAssessment", "StockKeyLabel", "YearOfLastAssessment"))
+#' @importFrom utils globalVariables
+globalVariables(c("Purpose", "YearOfNextAssessment", "StockKeyLabel", "YearOfLastAssessment"))
