@@ -1,6 +1,6 @@
 Package: icesTEASD
 Title: An Amazing Shiny App
-Version: 0.0.0.9000
+Version: 0.0.0.9002
 Authors@R:
     c(person("Neil", "Maginnis", role=c("aut","cre"), email="neil.maginnis@ices.dk"),
       person("Colin", "Millar", role="aut"))
@@ -18,7 +18,8 @@ Imports:
     shiny (>= 1.8.0),
     icesSD,
     icesSAG,
-    dplyr
+    dplyr,
+    desc
 Suggests:
     pkgload
 Encoding: UTF-8

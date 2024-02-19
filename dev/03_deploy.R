@@ -20,6 +20,17 @@ rhub::check_for_cran()
 
 # Deploy
 
+# we deploy only through github actions, and when code is changed on the main
+# branch :)
+
+# update renv.lock file - important to do this in a clean R
+# otherwise devtools etc all get put into the renv file
+file <- renv::lockfile_create(exclude = desc::desc_get_field("Package"))
+renv::lockfile_write(file)
+
+# bump description file
+desc::desc_bump_version(which = "dev")
+
 ## Local, CRAN or Package Manager ----
 ## This will build a tar.gz that can be installed locally,
 ## sent to CRAN, or to a package manager

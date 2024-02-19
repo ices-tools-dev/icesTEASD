@@ -7,3 +7,5 @@ $run_dev.*
 ^.here$
 ^app\.R$
 ^rsconnect$
+^\.github$
+^renv\.lock$

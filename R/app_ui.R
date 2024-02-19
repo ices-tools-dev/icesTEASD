@@ -7,6 +7,7 @@
 #' @importFrom htmltools css h1 tags
 #' @importFrom bsicons bs_icon
 #' @importFrom DT dataTableOutput DTOutput
+#' @importFrom desc desc_get_version
 #'
 #' @noRd
 app_ui <- function(request) {
@@ -16,11 +17,11 @@ app_ui <- function(request) {
 
     navbarPage(
       theme = bs_theme(bootswatch = "cyborg"),
-      title = ("icesTEASD: Tool for Error Alignment of Stock Databases"),
+      title = paste0("icesTEASD: Tool for Error Alignment of Stock Databases, v", desc_get_version()),
       tabPanel("SID SAG checks",
                mod_SID_SAG_checks_ui("SID_SAG_checks_1")
       ),
-      tabPanel("User checks", 
+      tabPanel("User checks",
                mod_user_checks_ui("user_checks_1"))
     )
   )
