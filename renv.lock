@@ -727,26 +727,6 @@
       ],
       "Hash": "fedd0153fc05a6d9084fafc21d21ed3d"
     },
-    "icesTEASD": {
-      "Package": "icesTEASD",
-      "Version": "0.0.0.9000",
-      "Source": "unknown",
-      "Requirements": [
-        "DT",
-        "bsicons",
-        "bslib",
-        "config",
-        "dplyr",
-        "golem",
-        "htmltools",
-        "icesSAG",
-        "icesSD",
-        "lubridate",
-        "magrittr",
-        "shiny"
-      ],
-      "Hash": "19e063cf72069572b0b01f55f4627579"
-    },
     "icesVocab": {
       "Package": "icesVocab",
       "Version": "1.2.1",
