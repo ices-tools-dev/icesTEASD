@@ -1,14 +1,14 @@
 name: Deploy to shinyapps.io
 
-on:  
-  # run on push to main 
+on:
+  # run on push to main
   push:
     branches:
       - main
 
   # run on request (via button in actions menu)
   workflow_dispatch:
-      
+
 jobs:
   deploy:
     name: Deploy to shinyapps
@@ -18,9 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: tecolicom/actions-use-apt-tools@v1
-        with:
-          tools: libsodium-dev pkg-config
       - name: deploy
         uses: BDSI-Utwente/shinyapps-deploy-github-action@v1
         with:
