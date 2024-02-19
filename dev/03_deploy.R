@@ -31,14 +31,6 @@ renv::lockfile_write(file)
 # bump description file
 desc::desc_bump_version(which = "dev")
 
-## Local, CRAN or Package Manager ----
-## This will build a tar.gz that can be installed locally,
-## sent to CRAN, or to a package manager
-#devtools::build()
-
-## RStudio ----
-## If you want to deploy on RStudio related platforms
-golem::add_shinyappsio_file()
 
 # Deploy to Posit Connect or ShinyApps.io
 # In command line.
