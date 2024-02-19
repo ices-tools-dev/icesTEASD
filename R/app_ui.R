@@ -2,15 +2,12 @@
 #'
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
-#' @import shiny
-#' @importFrom bslib value_box
-#' @importFrom bslib card_body
-#' @importFrom bslib layout_column_wrap
-#' @importFrom bslib bs_theme
-#' @importFrom htmltools css
+#' @importFrom shiny tagList navbarPage tabPanel fluidRow uiOutput textOutput actionButton
+#' @importFrom bslib value_box card_body layout_column_wrap bs_theme
+#' @importFrom htmltools css h1 tags
 #' @importFrom bsicons bs_icon
-#' @importFrom DT dataTableOutput
-#' @importFrom DT DTOutput
+#' @importFrom DT dataTableOutput DTOutput
+#'
 #' @noRd
 app_ui <- function(request) {
   tagList(
@@ -23,10 +20,10 @@ app_ui <- function(request) {
 
       tabPanel("SID SAG checks",
         fluidRow(
-          shiny::uiOutput(outputId = "year_selector", style = "padding-bottom:0px")
+          uiOutput(outputId = "year_selector", style = "padding-bottom:0px")
         ),
         fluidRow(
-          shiny::actionButton(inputId = "check", label = "Check for mismatches", class = "btn btn-primary"),
+          actionButton(inputId = "check", label = "Check for mismatches", class = "btn btn-primary"),
           style = "padding-bottom:15px; padding-left:12px; padding-right:12px; padding-top:0px"
         ),
         layout_column_wrap(
@@ -55,7 +52,6 @@ app_ui <- function(request) {
 #' This function is internally used to add external
 #' resources inside the Shiny application.
 #'
-#' @import shiny
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
 golem_add_external_resources <- function() {

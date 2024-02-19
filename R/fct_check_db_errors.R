@@ -7,17 +7,19 @@
 #' @noRd
 #'
 #' @importFrom icesSD getSD
-#' @importFrom icesSAG getListStocks
-#' @importFrom dplyr filter select mutate
+#' @importFrom icesSAG StockList
+#' @importFrom dplyr filter select mutate bind_rows
+#' @importFrom magrittr %>%
+#' @importFrom shiny validate need
 #'
 check_stock_db_errors <- function(year) {
 
-  sid_data <- icesSD:: getSD(year)
-  sag_data <- icesSAG::getListStocks(year)
+  sid_data <- getSD(year = year)
+  sag_data <- StockList(year = year)
 
   validate(
-    shiny::need(!is.null(sid_data), "SID not responding correctly"),
-    shiny::need(!is.null(sag_data), "SAG not responding correctly")
+    need(!is.null(sid_data), "SID not responding correctly"),
+    need(!is.null(sag_data), "SAG not responding correctly")
   )
   sag_data <- sag_data %>% dplyr::filter(Purpose == "Advice")
 

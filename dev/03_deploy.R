@@ -39,7 +39,6 @@ rsconnect::deployApp(
     "R/",
     "inst/",
     "man/",
-    "data/",
     "NAMESPACE",
     "DESCRIPTION",
     ".Rbuildignore",
