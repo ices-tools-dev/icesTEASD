@@ -677,56 +677,6 @@
       ],
       "Hash": "e2b30f1fc039a0bab047dd52bb20ef71"
     },
-    "icesConnect": {
-      "Package": "icesConnect",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "base64enc",
-        "getPass",
-        "httr",
-        "jsonlite",
-        "keyring",
-        "whoami"
-      ],
-      "Hash": "747f4df492c90c379c4f9aefaf340dce"
-    },
-    "icesSAG": {
-      "Package": "icesSAG",
-      "Version": "1.4.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "icesSAG",
-      "RemoteUsername": "ices-tools-prod",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "79da39d8c65baca566d17ec1fc8bfb3e2c8fa16e",
-      "Requirements": [
-        "R",
-        "cachem",
-        "httr",
-        "icesConnect",
-        "icesVocab",
-        "memoise",
-        "openssl",
-        "png",
-        "rlang",
-        "xml2"
-      ],
-      "Hash": "e964c764c94b1ee62966fe01f6624f3c"
-    },
-    "icesSD": {
-      "Package": "icesSD",
-      "Version": "2.0.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "httr",
-        "icesConnect"
-      ],
-      "Hash": "fedd0153fc05a6d9084fafc21d21ed3d"
-    },
     "icesVocab": {
       "Package": "icesVocab",
       "Version": "1.2.1",

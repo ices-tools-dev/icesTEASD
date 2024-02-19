@@ -26,6 +26,12 @@ rhub::check_for_cran()
 # update renv.lock file - important to do this in a clean R
 # otherwise devtools etc all get put into the renv file
 file <- renv::lockfile_create(exclude = desc::desc_get_field("Package"))
+file$Packages <- file$Packages[!names(file$Packages) %in% "keyring"]
+file$Packages <- file$Packages[!names(file$Packages) %in% "sodium"]
+file$Packages <- file$Packages[!names(file$Packages) %in% "icesConnect"]
+file$Packages <- file$Packages[!names(file$Packages) %in% "icesSAG"]
+file$Packages <- file$Packages[!names(file$Packages) %in% "icesSD"]
+
 renv::lockfile_write(file)
 
 # bump description file
