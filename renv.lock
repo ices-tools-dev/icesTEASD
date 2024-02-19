@@ -19,7 +19,7 @@
   "Packages": {
     "DT": {
       "Package": "DT",
-      "Version": "0.31",
+      "Version": "0.32",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -32,7 +32,7 @@
         "magrittr",
         "promises"
       ],
-      "Hash": "77b5189f5272ae2b21e3ac2175ad107c"
+      "Hash": "0d3ab8abbb0c3e3daa47d4dc8e17bbae"
     },
     "R6": {
       "Package": "R6",
@@ -673,7 +673,13 @@
     "icesTEASD": {
       "Package": "icesTEASD",
       "Version": "0.0.0.9002",
-      "Source": "unknown",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "icesTEASD",
+      "RemoteUsername": "ices-tools-dev",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "5daaefe1920bd79754084a6706eb7d4671fc61b3",
       "Requirements": [
         "DT",
         "bsicons",
@@ -689,7 +695,7 @@
         "magrittr",
         "shiny"
       ],
-      "Hash": "8c62ded2c74f3438c11ce9c7b98cbe23"
+      "Hash": "4bd0bc1b07d971d5d0bb8f25d7c2ae1a"
     },
     "icesVocab": {
       "Package": "icesVocab",
