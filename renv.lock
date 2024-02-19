@@ -466,33 +466,6 @@
       ],
       "Hash": "dbc18b18dab1a285a8f9cd22d0876aa1"
     },
-    "icesTEASD": {
-      "Package": "icesTEASD",
-      "Version": "0.0.0.9002",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "icesTEASD",
-      "RemoteUsername": "ices-tools-dev",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "5daaefe1920bd79754084a6706eb7d4671fc61b3",
-      "Requirements": [
-        "DT",
-        "bsicons",
-        "bslib",
-        "config",
-        "desc",
-        "dplyr",
-        "golem",
-        "htmltools",
-        "icesSAG",
-        "jsonlite",
-        "lubridate",
-        "magrittr",
-        "shiny"
-      ],
-      "Hash": "4bd0bc1b07d971d5d0bb8f25d7c2ae1a"
-    },
     "icesVocab": {
       "Package": "icesVocab",
       "Version": "1.2.0",

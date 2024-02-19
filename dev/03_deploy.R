@@ -22,13 +22,9 @@ rhub::check_for_cran()
 
 # we deploy only through github actions, and when code is changed on the main
 # branch :)
-
 # update renv.lock file
-# important to have icesTEASD installed so that another machine can find it
-devtools::install_github("ices-tools-dev/icesTEASD")
 deps <- renv::dependencies()
 deps <- deps[!grepl("/dev/", deps$Source) & !grepl("rsconnect", deps$Source), ]
-
 file <- renv::lockfile_create(packages = unique(deps$Package))
 renv::lockfile_write(file)
 
