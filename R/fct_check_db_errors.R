@@ -5,16 +5,16 @@
 #' @return The return value, if any, from executing the function.
 #'
 #' @noRd
-#' 
-#' @importFrom icesFO load_sid
+#'
+#' @importFrom icesSD getSD
 #' @importFrom icesSAG getListStocks
 #' @importFrom dplyr filter select mutate
 #'
 check_stock_db_errors <- function(year) {
-  
-  sid_data <- load_sid(year)
-  sag_data <- icesSAG::getListStocks(year) 
-  
+
+  sid_data <- icesSD:: getSD(year)
+  sag_data <- icesSAG::getListStocks(year)
+
   validate(
     shiny::need(!is.null(sid_data), "SID not responding correctly"),
     shiny::need(!is.null(sag_data), "SAG not responding correctly")
