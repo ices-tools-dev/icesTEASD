@@ -17,8 +17,10 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[no-deploy]')"
     runs-on: ubuntu-latest
     steps:
-      - run: sudo apt-get install -y libsodium-dev
       - uses: actions/checkout@v2
+      - uses: tecolicom/actions-use-apt-tools@v1
+        with:
+          tools: libsodium-dev
       - name: deploy
         uses: BDSI-Utwente/shinyapps-deploy-github-action@v1
         with:
