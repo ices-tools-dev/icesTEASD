@@ -16,10 +16,10 @@ Imports:
     lubridate,
     magrittr,
     shiny (>= 1.8.0),
-    icesSD,
     icesSAG,
     dplyr,
-    desc
+    desc,
+    jsonlite
 Suggests:
     pkgload
 Encoding: UTF-8

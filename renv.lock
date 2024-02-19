@@ -447,16 +447,6 @@
       "Repository": "CRAN",
       "Hash": "f7736a18de97dea803bde0a2daaafb27"
     },
-    "filelock": {
-      "Package": "filelock",
-      "Version": "1.0.3",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R"
-      ],
-      "Hash": "192053c276525c8495ccfd523aa8f2d1"
-    },
     "fontawesome": {
       "Package": "fontawesome",
       "Version": "0.5.2",
@@ -505,18 +495,6 @@
         "zip"
       ],
       "Hash": "f70d3fe2d9e7654213a946963d1591eb"
-    },
-    "getPass": {
-      "Package": "getPass",
-      "Version": "0.2-4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "rstudioapi",
-        "utils"
-      ],
-      "Hash": "281e56bcab06202f51be7b50254f2fce"
     },
     "gh": {
       "Package": "gh",
@@ -676,6 +654,21 @@
         "withr"
       ],
       "Hash": "e2b30f1fc039a0bab047dd52bb20ef71"
+    },
+    "icesSAG": {
+      "Package": "icesSAG",
+      "Version": "1.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "httr",
+        "icesVocab",
+        "openssl",
+        "png",
+        "xml2"
+      ],
+      "Hash": "dbc18b18dab1a285a8f9cd22d0876aa1"
     },
     "icesVocab": {
       "Package": "icesVocab",

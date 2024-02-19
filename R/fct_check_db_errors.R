@@ -6,16 +6,23 @@
 #'
 #' @noRd
 #'
-#' @importFrom icesSD getSD
-#' @importFrom icesSAG StockList
+#' @importFrom icesSAG getListStocks
 #' @importFrom dplyr filter select mutate bind_rows
 #' @importFrom magrittr %>%
 #' @importFrom shiny validate need
+#' @importFrom jsonlite fromJSON
 #'
 check_stock_db_errors <- function(year) {
 
-  sid_data <- getSD(year = year)
-  sag_data <- StockList(year = year)
+  url <- paste0(
+    "http://sd.ices.dk/services/odata4/StockListDWs4?$filter=ActiveYear%20eq%20",
+    year
+  )
+  out <- fromJSON(url, simplifyDataFrame = TRUE)$value
+  sid_data <- unique(out)
+
+  # sid_data <- getSD(year = year) # - need to resove issue with libsodium
+  sag_data <- getListStocks(year = year)
 
   validate(
     need(!is.null(sid_data), "SID not responding correctly"),
