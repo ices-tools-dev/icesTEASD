@@ -47,8 +47,6 @@ rsconnect::deployApp(
     ".Rbuildignore",
     "app.R"
   ),
-#  appId = rsconnect::deployments(".")$appID,
-  lint = FALSE,
   forceUpdate = TRUE,
   account = "ices-tools-dev",
 )
