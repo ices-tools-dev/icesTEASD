@@ -17,27 +17,35 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-    fluidPage(theme = bs_theme(bootswatch = "cyborg"),
-      
+    navbarPage(
+      theme = bs_theme(bootswatch = "cyborg"),
       h1("icesTEASD: Tool for Error Alignment of Stock Databases"),
-      fluidRow(
-        shiny::uiOutput(outputId = "year_selector", style="padding-bottom:0px")),
-      fluidRow(
-        shiny::actionButton(inputId = "check", label = "Check for mismatches", class="btn btn-primary"), style= "padding-bottom:15px; padding-left:12px; padding-right:12px; padding-top:0px"),
-      layout_column_wrap(
-        width = NULL, height = 300, fill = FALSE,
-        style = css(grid_template_columns = "1fr 2fr"),
-        value_box(
-          title = "Stock Database issues",
-          value = textOutput("n_errors"),
-          showcase = bs_icon("wrench")
-          ), 
-        # bslib::card_body(
-        #   dataTableOutput(outputId = "PO_table")
-        # )), 
-        bslib::card_body(
-          DTOutput(outputId = "stock_table"))
-      )
+
+      tabPanel("SID SAG checks",
+        fluidRow(
+          shiny::uiOutput(outputId = "year_selector", style = "padding-bottom:0px")
+        ),
+        fluidRow(
+          shiny::actionButton(inputId = "check", label = "Check for mismatches", class = "btn btn-primary"),
+          style = "padding-bottom:15px; padding-left:12px; padding-right:12px; padding-top:0px"
+        ),
+        layout_column_wrap(
+          width = NULL, height = 300, fill = FALSE,
+          style = css(grid_template_columns = "1fr 2fr"),
+          value_box(
+            title = "Stock Database issues",
+            value = textOutput("n_errors"),
+            showcase = bs_icon("wrench")
+          ),
+          # bslib::card_body(
+          #   dataTableOutput(outputId = "PO_table")
+          # )),
+          bslib::card_body(
+            DTOutput(outputId = "stock_table")
+          )
+        )
+      ),
+      tabPanel("User checks", mod_user_checks_ui("user_checks_1"))
     )
   )
 }
