@@ -10,34 +10,37 @@
 mod_SID_SAG_checks_ui <- function(id){
   ns <- NS(id)
   tagList(
-      fluidRow(
-        uiOutput(outputId = ns("year_selector"), style = "padding-bottom:0px")
-      ),
-      fluidRow(
-        actionButton(inputId = ns("check"), label = "Check for mismatches", class = "btn btn-primary"),
-        style = "padding-bottom:15px; padding-left:12px; padding-right:12px; padding-top:0px"
-      ),
+      
       layout_column_wrap(
-        width = NULL, height = 300, fill = FALSE,
-        style = css(grid_template_columns = "1fr 2fr"),
-        value_box(
-          title = "Stock Database issues",
-          value = textOutput(ns("n_errors")),
-          showcase = bs_icon("wrench")
+        fill = T,
+        width = 1/2, heights_equal = "row",
+        bslib::card(
+          uiOutput(outputId = ns("year_selector")), 
+          actionButton(inputId = ns("check"), label = "Check for mismatches",
+                       class = "btn btn-primary"
+                       ),
+          value_box(
+            title = "Stock Database issues",
+            value = textOutput(ns("n_errors")),
+            showcase = bs_icon("wrench")
+          ),
         ),
-        # bslib::card_body(
-        #   dataTableOutput(outputId = "EG_table")
-        # )),
-        card_body(
-          DTOutput(outputId = ns("stock_table"))
+        bslib::card(height = "300px",
+          bslib::card_header("Overview"),
+          dataTableOutput(outputId = ns("EG_table")), full_screen = T
+          )
+    ),
+        bslib::card(height = "600px",
+          bslib::card_header("Detail"),
+          DTOutput(outputId = ns("detail_table")), full_screen = T
         )
-      )
   )
 }
 
 #' SID_SAG_checks Server Functions
 #'
 #' @noRd
+#' @importFrom dplyr summarise n arrange
 mod_SID_SAG_checks_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
@@ -49,7 +52,7 @@ mod_SID_SAG_checks_server <- function(id){
       } else {
         default_year <- years[1]
       }
-      selectInput(inputId = ns("year"), label = "Select Assessment Year", choices = years, selected = default_year, multiple = F)
+      selectInput(inputId = ns("year"), label = "Select Assessment Year", choices = years, selected = default_year, multiple = F, width = "100%")
     })
 
 
@@ -59,17 +62,27 @@ mod_SID_SAG_checks_server <- function(id){
       bindEvent(input$check)
 
 
-    output$EG_table <- renderDataTable({
+    output$EG_table <- renderDT({
       req(!is.null(data()))
-      datatable(data.frame(PO =  1:4), options = list(dom="t"),
+      
+      eg_df <- data() %>% summarise(.by = ExpertGroup, Issues = n()) %>% arrange(desc(Issues))
+      
+      datatable(eg_df, options = list(pageLength = 20, 
+                                      dom = "tip", 
+                                      lengthMenu = c(5, 10, 15, 20)),
                     rownames = FALSE)
     })
 
 
-    output$stock_table <- renderDT({
+    output$detail_table <- renderDT({
       req(!is.null(data()))
-      datatable(data(), options = list(pageLength = 10,
-                                           lengthMenu = c(5, 10, 15, 20)),
+      detail_df <- select(data(), c(Stock, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
+        arrange(Stock)
+      
+      datatable(detail_df,filter = "top",
+                options = list(pageLength = 20,
+                               dom = "tip",
+                               lengthMenu = c(5, 10, 15, 20)),
                     rownames = FALSE)
     })
 
