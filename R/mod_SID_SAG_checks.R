@@ -3,37 +3,32 @@
 #' @description A shiny Module to identify errors in, and mismatches between, ICES SID and SAG databases
 #'
 #' @param id,input,output,session Internal parameters for {shiny}.
-#'
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
 mod_SID_SAG_checks_ui <- function(id){
   ns <- NS(id)
   tagList(
-      
       layout_column_wrap(
         fill = T,
         width = 1/2, heights_equal = "row",
-        bslib::card(
+        card(
           uiOutput(outputId = ns("year_selector")), 
           actionButton(inputId = ns("check"), label = "Check for mismatches",
-                       class = "btn btn-primary"
-                       ),
+                       class = "btn btn-primary"),
           value_box(
             title = "Stock Database issues",
             value = textOutput(ns("n_errors")),
-            showcase = bs_icon("wrench")
-          ),
-        ),
-        bslib::card(height = "300px",
-          bslib::card_header("Overview"),
+            showcase = bs_icon("wrench"))
+            ),
+        card(height = "300px",
+          card_header("Overview"),
           dataTableOutput(outputId = ns("EG_table")), full_screen = T
           )
-    ),
-        bslib::card(height = "600px",
-          bslib::card_header("Detail"),
-          DTOutput(outputId = ns("detail_table")), full_screen = T
-        )
+      ),
+      card(height = "600px",
+        card_header("Detail"),
+        DTOutput(outputId = ns("detail_table")), full_screen = T)
   )
 }
 

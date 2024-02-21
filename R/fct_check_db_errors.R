@@ -28,7 +28,7 @@ check_stock_db_errors <- function(year) {
     need(!is.null(SAG_data), "SAG not responding correctly")
   )
   
-  SAG_advice_data <- SAG_data %>% dplyr::filter(Purpose == "Advice")
+  SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
   SID_selected_year <- SID_data %>%
     filter(YearOfLastAssessment == year)
   # SID_data <- getSD(year = year) # - need to resove issue with libsodium

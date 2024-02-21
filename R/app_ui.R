@@ -3,7 +3,7 @@
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
 #' @importFrom shiny tagList navbarPage tabPanel fluidRow uiOutput textOutput actionButton
-#' @importFrom bslib value_box card_body layout_column_wrap bs_theme
+#' @importFrom bslib value_box card card_header card_body layout_column_wrap bs_theme 
 #' @importFrom htmltools css h1 tags
 #' @importFrom bsicons bs_icon
 #' @importFrom DT dataTableOutput DTOutput
