@@ -20,7 +20,9 @@ Imports:
     dplyr,
     desc,
     jsonlite,
-    rlang
+    rlang,
+    httr,
+    icesConnect
 Suggests:
     pkgload
 Encoding: UTF-8
