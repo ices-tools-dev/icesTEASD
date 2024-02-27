@@ -6,7 +6,7 @@
 #'
 #' @noRd
 #'
-#' @importFrom shiny NS tagList
+#' @importFrom shiny NS tagList passwordInput
 mod_user_checks_ui <- function(id) {
   ns <- NS(id)
   tagList(
