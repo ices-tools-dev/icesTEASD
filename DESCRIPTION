@@ -17,10 +17,11 @@ Imports:
     magrittr,
     shiny (>= 1.8.0),
     icesSAG,
-    icesASD, 
+    icesASD,
     dplyr,
     desc,
-    jsonlite
+    jsonlite,
+    rlang
 Suggests:
     pkgload
 Encoding: UTF-8
