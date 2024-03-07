@@ -71,7 +71,7 @@ mod_db_checks_server <- function(id){
 
     output$detail_table <- renderDT({
       req(!is.null(data()))
-      detail_df <- select(data(), c(Stock, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
+      detail_df <- select(data(), c(Stock, Database, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
         arrange(Stock)
       
       datatable(detail_df,filter = "top",
