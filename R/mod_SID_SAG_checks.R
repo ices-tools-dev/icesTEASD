@@ -1,4 +1,4 @@
-#' SID_SAG_checks UI Function
+#' db_checks UI Function
 #'
 #' @description A shiny Module to identify errors in, and mismatches between, ICES SID and SAG databases
 #'
@@ -6,7 +6,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_SID_SAG_checks_ui <- function(id){
+mod_db_checks_ui <- function(id){
   ns <- NS(id)
   tagList(
       layout_column_wrap(
@@ -32,11 +32,11 @@ mod_SID_SAG_checks_ui <- function(id){
   )
 }
 
-#' SID_SAG_checks Server Functions
+#' db_checks Server Functions
 #'
 #' @noRd
 #' @importFrom dplyr summarise n arrange
-mod_SID_SAG_checks_server <- function(id){
+mod_db_checks_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -90,7 +90,7 @@ mod_SID_SAG_checks_server <- function(id){
 }
 
 ## To be copied in the UI
-# mod_SID_SAG_checks_ui("SID_SAG_checks_1")
+# mod_db_checks_ui("db_checks_1")
 
 ## To be copied in the server
-# mod_SID_SAG_checks_server("SID_SAG_checks_1")
+# mod_db_checks_server("db_checks_1")
