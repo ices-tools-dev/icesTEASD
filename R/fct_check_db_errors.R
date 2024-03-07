@@ -8,7 +8,6 @@
 #' @noRd
 #'
 #' @importFrom icesSAG getListStocks
-#' @importFrom icesASD getAdviceViewRecord
 #' @importFrom dplyr filter select mutate bind_rows left_join
 #' @importFrom magrittr %>%
 #' @importFrom shiny validate need
@@ -16,6 +15,8 @@
 #'
 check_stock_db_errors <- function(year) {
 
+  
+  SAG_data <- getListStocks(year = year)
   
   url <- paste0(
     "http://sd.ices.dk/services/odata4/StockListDWs4?$filter=ActiveYear%20eq%20",
@@ -25,8 +26,15 @@ check_stock_db_errors <- function(year) {
   out <- fromJSON(url, simplifyDataFrame = TRUE)$value
 
   SID_data <- unique(out)
-  SAG_data <- getListStocks(year = year)
-  ASD_data <- getAdviceViewRecord(year = year)
+  
+  url <- paste0(
+    "https://asd.ices.dk/api/getAdviceViewRecord?Year=",
+    year
+  )
+  
+  out <- fromJSON(url, simplifyDataFrame = TRUE)
+
+  ASD_data <- unique(out)
   
   validate(
     need(!is.null(SID_data), "SID not responding correctly"),
