@@ -17,6 +17,7 @@ Imports:
     magrittr,
     shiny (>= 1.8.0),
     icesSAG,
+    icesASD, 
     dplyr,
     desc,
     jsonlite

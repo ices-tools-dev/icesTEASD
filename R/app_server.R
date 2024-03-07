@@ -8,7 +8,7 @@
 #' @noRd
 app_server <- function(input, output, session) {
 
-  mod_SID_SAG_checks_server("SID_SAG_checks_1")
+  mod_db_checks_server("db_checks_1")
   mod_user_checks_server("user_checks_1")
   
 }

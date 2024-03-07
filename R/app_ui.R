@@ -3,7 +3,7 @@
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
 #' @importFrom shiny tagList navbarPage tabPanel fluidRow uiOutput textOutput actionButton
-#' @importFrom bslib value_box card_body layout_column_wrap bs_theme
+#' @importFrom bslib value_box card card_header card_body layout_column_wrap bs_theme 
 #' @importFrom htmltools css h1 tags
 #' @importFrom bsicons bs_icon
 #' @importFrom DT dataTableOutput DTOutput
@@ -18,8 +18,8 @@ app_ui <- function(request) {
     navbarPage(
       theme = bs_theme(bootswatch = "cyborg"),
       title = paste0("icesTEASD: Tool for Error Alignment of Stock Databases, v", desc_get_version()),
-      tabPanel("SID SAG checks",
-               mod_SID_SAG_checks_ui("SID_SAG_checks_1")
+      tabPanel("Database checks",
+               mod_db_checks_ui("db_checks_1")
       ),
       tabPanel("User checks",
                mod_user_checks_ui("user_checks_1"))
