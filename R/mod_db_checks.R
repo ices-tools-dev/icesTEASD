@@ -13,7 +13,7 @@ mod_db_checks_ui <- function(id){
         fill = T,
         width = 1/2, heights_equal = "row",
         card(
-          uiOutput(outputId = ns("year_selector")), 
+          uiOutput(outputId = ns("year_selector")),
           actionButton(inputId = ns("check"), label = "Check for mismatches",
                        class = "btn btn-primary"),
           value_box(
@@ -35,7 +35,7 @@ mod_db_checks_ui <- function(id){
 #' db_checks Server Functions
 #'
 #' @noRd
-#' @importFrom dplyr summarise n arrange
+#' @importFrom dplyr summarise n arrange desc
 mod_db_checks_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
@@ -59,11 +59,11 @@ mod_db_checks_server <- function(id){
 
     output$EG_table <- renderDT({
       req(!is.null(data()))
-      
+
       eg_df <- data() %>% summarise(.by = ExpertGroup, Issues = n()) %>% arrange(desc(Issues))
-      
-      datatable(eg_df, options = list(pageLength = 20, 
-                                      dom = "tip", 
+
+      datatable(eg_df, options = list(pageLength = 20,
+                                      dom = "tip",
                                       lengthMenu = c(5, 10, 15, 20)),
                     rownames = FALSE)
     })
@@ -71,9 +71,9 @@ mod_db_checks_server <- function(id){
 
     output$detail_table <- renderDT({
       req(!is.null(data()))
-      detail_df <- select(data(), c(Stock, Database, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
+      detail_df <- select(data(), c(Stock, Database, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>%
         arrange(Stock)
-      
+
       datatable(detail_df,filter = "top",
                 options = list(pageLength = 20,
                                dom = "tip",
