@@ -41,7 +41,7 @@ mod_db_checks_server <- function(id){
     ns <- session$ns
 
     output$year_selector <- renderUI({
-      years <- seq(year(Sys.Date()),year(Sys.Date())-7)
+      years <- as.numeric(seq(year(Sys.Date()),year(Sys.Date())-7))
       if(month(Sys.Date()) <=5) {
         default_year <- years[2]
       } else {
@@ -71,7 +71,8 @@ mod_db_checks_server <- function(id){
 
     output$detail_table <- renderDT({
       req(!is.null(data()))
-      detail_df <- select(data(), c(Stock, Database, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
+      
+      detail_df <- select(data(), c(Stock, AssessmentKey, Database, Issue, ExpertGroup, YearOfLastAssessment, YearOfNextAssessment, AssessmentFrequency)) %>% 
         arrange(Stock)
       
       datatable(detail_df,filter = "top",

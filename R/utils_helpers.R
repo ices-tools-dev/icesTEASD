@@ -30,3 +30,43 @@ join_expert_group <- function(df, match_column, SID_data,  year) {
   bind_rows(current_year_matches, latest_year_matches) %>% 
     arrange(ExpertGroup)
 }
+
+
+#' Title
+#'
+#' @param year 
+#'
+#' @return
+#' @export
+#' @import data.table
+#' @importFrom icesSD getSD
+#' @importFrom dplyr filter group_by
+#'
+#' @examples
+getSAG_complete <- function(year){
+  year <- as.numeric(year)
+  years <- ((year-3):year)
+  sid <- getSD(NULL,year)
+  out <- data.frame()
+  res <- data.frame()
+  for(n in 1:4){
+    x <- years[n]
+    url <- paste0("https://sag.ices.dk/SAG_API/api/SAGDownload?year=", x)
+    tmpSAG <- tempfile(fileext = ".zip")
+    download.file(url, destfile = tmpSAG, mode = "wb", quiet = FALSE)
+    names <-unzip(tmpSAG, list = TRUE)
+    res <- read.csv(unz(tmpSAG, names$Name[1]),
+                    stringsAsFactors = FALSE,
+                    header = TRUE,
+                    fill = TRUE)
+    res<- unique(res)
+    out <- rbind(out, res)
+  }
+  
+  out <- filter(out, Purpose == "Advice", FishStock %in% sid$StockKeyLabel)
+  out <- as.data.table(out) 
+  out <- out[out[, .I[AssessmentKey == max(AssessmentKey)], by=FishStock]$V1]
+  out <- out %>% group_by(FishStock) %>%
+    filter(Year == max(Year))
+  out <- as.data.frame(out)
+}

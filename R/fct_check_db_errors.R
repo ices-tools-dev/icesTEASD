@@ -16,7 +16,9 @@
 check_stock_db_errors <- function(year) {
 
   
-  SAG_data <- getListStocks(year = year)
+  SAG_data <- getSAG_complete(year = year)
+  
+  names(SAG_data)[names(SAG_data) == "FishStock"] <- "StockKeyLabel"
   
   url <- paste0(
     "http://sd.ices.dk/services/odata4/StockListDWs4?$filter=ActiveYear%20eq%20",
@@ -49,30 +51,30 @@ check_stock_db_errors <- function(year) {
 
   SID_errors <-
     SID_data %>%
-    filter(YearOfNextAssessment == year) %>%
+    filter(YearOfNextAssessment <= year) %>%
     select(Stock = StockKeyLabel) %>%
     mutate(Database = "SID",
-           Issue = "Year of Next Assessment in past")
+           Issue = "Please check Year of Next Assessment")
 
   
   
   mismatch_missing_in_SID <-
     data.frame(Stock = setdiff(SAG_advice_data$StockKeyLabel, SID_selected_year$StockKeyLabel)) %>%
     mutate(Database = "SID",
-      Issue = "Stock missing"
+      Issue = "Missing entry in SID for the selected year"
     )
   
   mismatch_missing_in_SAG <-
     data.frame(Stock = setdiff(SID_selected_year$StockKeyLabel, SAG_advice_data$StockKeyLabel)) %>%
     mutate(Database = "SAG", 
-           Issue = "Stock missing")
+           Issue = "Missing entry in SAG for the selected year")
   
   mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
   
   mismatches_SAG_ASD <-
       data.frame(Stock = setdiff(SAG_data$StockKeyLabel, ASD_data$stockCode)) %>%
       mutate(Database = "ASD",
-             Issue = "Stock missing")
+             Issue = "Missing entry in ASD for the selected year")
   
   replaced_advice <-
       data.frame(Stock = setdiff(ASD_data[ASD_data$adviceStatus == "Replaced", ]$stockCode, ASD_data[ASD_data$adviceStatus == "Advice", ]$stockCode)) %>%
