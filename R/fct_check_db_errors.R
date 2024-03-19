@@ -28,8 +28,7 @@ check_stock_db_errors <- function(year) {
 
   SID_data <- unique(out)
   
-  # years <- seq(year, year-4)
-  years <- seq(2023, 2019)
+  years <- seq(year, year-3)
   
   ASD_data <- data.frame()
   for(i in years) {

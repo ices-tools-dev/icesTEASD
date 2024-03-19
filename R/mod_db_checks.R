@@ -41,7 +41,7 @@ mod_db_checks_server <- function(id){
     ns <- session$ns
 
     output$year_selector <- renderUI({
-      years <- as.numeric(seq(year(Sys.Date()),year(Sys.Date())-7))
+      years <- seq(year(Sys.Date()),year(Sys.Date())-7)
       if(month(Sys.Date()) <=5) {
         default_year <- years[2]
       } else {
@@ -52,7 +52,7 @@ mod_db_checks_server <- function(id){
 
 
     data <- reactive({
-      issues <-check_stock_db_errors(year = input$year)
+      issues <-check_stock_db_errors(year = as.numeric(input$year))
     }) %>%
       bindEvent(input$check)
 
