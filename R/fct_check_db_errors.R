@@ -15,7 +15,6 @@
 #'
 check_stock_db_errors <- function(year) {
 
-  
   SAG_data <- getSAG_complete(year = year)
   
   names(SAG_data)[names(SAG_data) == "FishStock"] <- "StockKeyLabel"
@@ -29,14 +28,21 @@ check_stock_db_errors <- function(year) {
 
   SID_data <- unique(out)
   
+  # years <- seq(year, year-4)
+  years <- seq(2023, 2019)
+  
+  ASD_data <- data.frame()
+  for(i in years) {
+    
   url <- paste0(
     "https://asd.ices.dk/api/getAdviceViewRecord?Year=",
-    year
+    i
   )
   
   out <- fromJSON(url, simplifyDataFrame = TRUE)
 
-  ASD_data <- unique(out)
+  ASD_data <- dplyr::bind_rows(ASD_data, unique(out))
+  }
   
   validate(
     need(!is.null(SID_data), "SID not responding correctly"),
@@ -47,8 +53,8 @@ check_stock_db_errors <- function(year) {
   SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
   SID_selected_year <- SID_data %>%
     filter(YearOfLastAssessment == year)
-  # SID_data <- getSD(year = year) # - need to resove issue with libsodium
-
+  ASD_valid_advice_data <- dplyr::filter(ASD_data, assessmentKey %in% SAG_data$AssessmentKey)
+  
   SID_errors <-
     SID_data %>%
     filter(YearOfNextAssessment <= year) %>%
@@ -59,7 +65,7 @@ check_stock_db_errors <- function(year) {
   
   
   mismatch_missing_in_SID <-
-    data.frame(Stock = setdiff(SAG_advice_data$StockKeyLabel, SID_selected_year$StockKeyLabel)) %>%
+    data.frame(Stock = setdiff(SAG_advice_data$StockKeyLabel, SID_data$StockKeyLabel)) %>%
     mutate(Database = "SID",
       Issue = "Missing entry in SID for the selected year"
     )
