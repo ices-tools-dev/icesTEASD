@@ -50,9 +50,11 @@ check_stock_db_errors <- function(year) {
   )
   
   SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
+  
   SID_selected_year <- SID_data %>%
     filter(YearOfLastAssessment == year)
-  ASD_valid_advice_data <- dplyr::filter(ASD_data, assessmentKey %in% SAG_data$AssessmentKey)
+  
+  ASD_valid_advice_data <- dplyr::filter(ASD_data, assessmentKey %in% SAG_advice_data$AssessmentKey)
   
   SID_errors <-
     SID_data %>%
@@ -77,7 +79,7 @@ check_stock_db_errors <- function(year) {
   mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
   
   mismatches_SAG_ASD <-
-      data.frame(Stock = setdiff(SAG_data$StockKeyLabel, ASD_data$stockCode)) %>%
+      data.frame(Stock = setdiff(SAG_data$StockKeyLabel, ASD_valid_advice_data$stockCode)) %>%
       mutate(Database = "ASD",
              Issue = "Missing entry in ASD for the selected year")
   
