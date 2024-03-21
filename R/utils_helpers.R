@@ -16,19 +16,14 @@
 #' @noRd
 #' @importFrom dplyr filter select full_join slice_max pull bind_rows arrange
 #' @importFrom rlang sym
-join_expert_group <- function(df, match_column, SID_data,  year) {
+join_expert_group <- function(df, match_column = "StockKeyLabel", SID_data,  year) {
   
   key <- df[,match_column]
   SID_data_filtered <- filter(SID_data, StockKeyLabel %in% key)
   
   join_condition <- setNames("StockKeyLabel", match_column)
-  joined_data <- full_join(df, SID_data_filtered, by = join_condition)
-  current_year_matches <- filter(joined_data, YearOfLastAssessment == year)
-  unmatched <- filter(joined_data ,!(!!sym(match_column) %in% pull(current_year_matches, !!sym(match_column))))
-  latest_year_matches <- slice_max(unmatched, order_by = YearOfLastAssessment, n = 1)
+  joined_data <- full_join(df, SID_data_filtered, by = join_condition) 
   
-  bind_rows(current_year_matches, latest_year_matches) %>% 
-    arrange(ExpertGroup)
 }
 
 

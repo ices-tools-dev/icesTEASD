@@ -16,7 +16,7 @@ app_ui <- function(request) {
     golem_add_external_resources(),
 
     navbarPage(
-      theme = bs_theme(bootswatch = "cyborg"),
+      theme = bs_theme(bootswatch = "materia"),
       title = paste0("icesTEASD: Tool for Error Alignment of Stock Databases, v", desc_get_version()),
       tabPanel("Database checks",
                mod_db_checks_ui("db_checks_1")

@@ -22,7 +22,8 @@ Imports:
     jsonlite,
     rlang,
     icesSD,
-    data.table
+    data.table,
+    shinycssloaders
 Suggests:
     pkgload
 Encoding: UTF-8
