@@ -103,7 +103,12 @@ mod_db_checks_server <- function(id){
     
     output$SAG <- renderDT({
        req(!is.null(data()$SAG))
-      detail_df <- select(data()$SAG, Stock, Issue, "Expert Group" = ExpertGroup, "Year Of Last Assessment" = YearOfLastAssessment)
+
+      detail_df <- select(data()$SAG, Stock, 
+                          "Assessment Key" = AssessmentKey.x,
+                          Issue,
+                          "Expert Group" = ExpertGroup,
+                          "Year Of Last Assessment" = YearOfLastAssessment)
       
       datatable(detail_df,filter = "top",
                             options = list(pageLength = 20,
@@ -114,7 +119,13 @@ mod_db_checks_server <- function(id){
     
     output$ASD <- renderDT({
        req(!is.null(data()$ASD))
-      detail_df <- select(data()$ASD, Stock, Issue, "Expert Group" = ExpertGroup, "Year Of Last Assessment" = YearOfLastAssessment)
+
+      detail_df <- select(data()$ASD, 
+                          Stock, 
+                          "Assessment Key" = AssessmentKey.x,
+                          Issue, 
+                          "Expert Group" = ExpertGroup, 
+                          "Year Of Last Assessment" = YearOfLastAssessment)
       
       datatable(detail_df,filter = "top",
                             options = list(pageLength = 20,
