@@ -68,7 +68,7 @@ mod_db_checks_server <- function(id){
       } else {
         default_year <- years[1]
       }
-      selectInput(inputId = ns("year"), label = "Select Assessment Year", choices = years, selected = default_year, multiple = F, width = "100%")
+      selectInput(inputId = ns("year"), label = "Select year of advice validity", choices = years, selected = default_year, multiple = F, width = "100%")
     })
 
 
