@@ -103,12 +103,6 @@ check_stock_db_errors <- function(year) {
     mutate(Database = "ASD",
            Issue = "Missing entry in SAG and ASD for relevant assessment year")
   
-  
-  replaced_advice <-
-      data.frame(Stock = setdiff(ASD_data[ASD_data$adviceStatus == "Replaced", ]$stockCode, ASD_data[ASD_data$adviceStatus == "Advice", ]$stockCode)) %>%
-      mutate(Database = "ASD",
-             Issue = "Replaced advice; latest advice missing")
-  
 
   selected_SAG_data <- select(SAG_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
   
