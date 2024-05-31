@@ -115,7 +115,7 @@ check_stock_db_errors <- function(year) {
     left_join(selected_SAG_data, by = c("Stock" = "StockKeyLabel")) %>% 
     arrange(Stock)
 
-  ASD <-  bind_rows(mismatches_SAG_ASD, replaced_advice, missing_ASD) %>% as.data.frame() %>% 
+  ASD <-  bind_rows(mismatches_SAG_ASD, missing_ASD) %>% as.data.frame() %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
     filter(is.na(AssessmentYear) | AssessmentYear == YearOfLastAssessment | YearOfLastAssessment == 0) %>% 
     arrange(Stock)
