@@ -24,7 +24,8 @@ Imports:
     icesSD,
     data.table,
     shinycssloaders,
-    purrr
+    purrr,
+    glue
 Suggests:
     pkgload
 Encoding: UTF-8

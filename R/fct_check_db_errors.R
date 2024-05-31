@@ -8,11 +8,13 @@
 #' @noRd
 #'
 #' @importFrom icesSAG getListStocks
-#' @importFrom dplyr filter select mutate bind_rows left_join summarise n arrange
+#' @importFrom dplyr filter select mutate bind_rows left_join full_join anti_join summarise n arrange across case_when if_any
+#' @importFrom glue glue
 #' @importFrom magrittr %>%
 #' @importFrom shiny validate need
 #' @importFrom jsonlite fromJSON
 #' @importFrom purrr map_df
+#' @importFrom stringr str_detect regex
 #'
 check_stock_db_errors <- function(year) {
 
@@ -37,7 +39,7 @@ check_stock_db_errors <- function(year) {
       i
     )
     out <- fromJSON(url, simplifyDataFrame = TRUE)
-  ASD_data <- dplyr::bind_rows(ASD_data, unique(out))
+  ASD_data <- bind_rows(ASD_data, unique(out))
   }
   
   validate(
@@ -51,7 +53,7 @@ check_stock_db_errors <- function(year) {
   SID_selected_year <- SID_data %>%
     filter(YearOfLastAssessment == year)
   
-  ASD_valid_advice_data <- dplyr::filter(ASD_data, assessmentKey %in% SAG_advice_data$AssessmentKey, adviceStatus == "Advice")
+  ASD_valid_advice_data <- filter(ASD_data, assessmentKey %in% SAG_advice_data$AssessmentKey, adviceStatus == "Advice")
   
   SID_errors <-
     SID_data %>%
@@ -60,6 +62,16 @@ check_stock_db_errors <- function(year) {
     mutate(Database = "SID",
            Issue = "Please check Year of Next Assessment")
 
+
+  detail_missing_in_SID <- SID_selected_year %>%
+    select(StockKeyLabel, TrophicGuild, FisheriesGuild, SizeGuild) %>%
+    mutate(Stock = StockKeyLabel,
+           Database = "SID",
+           Issue = case_when(if_any(c(TrophicGuild, FisheriesGuild, SizeGuild), ~ is.na(.)) ~ "Guild information missing",
+                             if_any(c(TrophicGuild, FisheriesGuild, SizeGuild), ~ str_detect(., regex("^(na)$", ignore_case = TRUE))) ~ "Guild information contains typed NAs",
+                             .default = NA)) %>% 
+    filter(!is.na(Issue)) %>% 
+    select(Stock, Database, Issue)
 
   mismatch_missing_in_SID <-
     data.frame(Stock = setdiff(SAG_advice_data$StockKeyLabel, SID_data$StockKeyLabel)) %>%
@@ -76,14 +88,14 @@ check_stock_db_errors <- function(year) {
 
   mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
   
-  matched_SAG_ASD <- select(SAG_data, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear) %>% dplyr::full_join(select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear), by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
+  matched_SAG_ASD <- select(SAG_data, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear) %>% full_join(select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear), by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
   
   mismatches_SAG_ASD <- matched_SAG_ASD %>% filter(is.na(adviceStatus) | adviceStatus != "Advice") %>% 
     group_by(AssessmentYear, StockKeyLabel) %>% 
-    dplyr::anti_join(ASD_valid_advice_data, by = c("StockKeyLabel" = "stockCode", "AssessmentYear" = "assessmentYear")) %>%
+    anti_join(ASD_valid_advice_data, by = c("StockKeyLabel" = "stockCode", "AssessmentYear" = "assessmentYear")) %>%
     mutate(Database = "ASD",
-           Issue = dplyr::case_when(adviceStatus == "Replaced" ~ glue::glue("ASD entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"), 
-                                    is.na(adviceStatus) & Purpose == "Advice" ~ glue::glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>% 
+           Issue = case_when(adviceStatus == "Replaced" ~ glue("ASD entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"), 
+                                    is.na(adviceStatus) & Purpose == "Advice" ~ glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>% 
     select(Stock = StockKeyLabel, Database, AssessmentKey, AssessmentYear, Issue)
 
   
@@ -100,7 +112,7 @@ check_stock_db_errors <- function(year) {
 
   selected_SAG_data <- select(SAG_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
   
-  SID <- bind_rows(SID_errors, mismatch_missing_in_SID) %>% 
+  SID <- bind_rows(SID_errors, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
     arrange(Stock)
   
@@ -114,7 +126,7 @@ check_stock_db_errors <- function(year) {
     filter(is.na(AssessmentYear) | AssessmentYear == YearOfLastAssessment | YearOfLastAssessment == 0) %>% 
     arrange(Stock)
 
-  eg <- purrr::map_df(list(SID, SAG, ASD), ~ select(.x, ExpertGroup)) %>% 
+  eg <- map_df(list(SID, SAG, ASD), ~ select(.x, ExpertGroup)) %>% 
     summarise(.by = ExpertGroup, Count = n()) %>% 
     arrange(desc(Count))
   
