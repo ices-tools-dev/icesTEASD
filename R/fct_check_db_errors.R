@@ -16,7 +16,7 @@
 #' @importFrom purrr map_df
 #' @importFrom stringr str_detect regex
 #'
-check_stock_db_errors <- function(year) {
+get_stock_data <- function(year) {
 
   url <- paste0(
     "http://sd.ices.dk/services/odata4/StockListDWs4?$filter=ActiveYear%20eq%20",
@@ -47,6 +47,13 @@ check_stock_db_errors <- function(year) {
     need(!is.null(SAG_data), "SAG not responding correctly"),
     need(!is.null(ASD_data), "ASD not responding correctly")
   )
+  return(list(SID_data=SID_data,
+              SAG_data=SAG_data,
+              ASD_data=ASD_data))
+}
+
+check_stock_db_errors <- function(SID_data, SAG_data, ASD_data, year, preview_days){
+  
   
   SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
   
@@ -105,18 +112,24 @@ check_stock_db_errors <- function(year) {
   
 
   selected_SAG_data <- select(SAG_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
-  
+
   SID <- bind_rows(SID_errors, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
-    join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
-    arrange(Stock)
+    join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
+    arrange(Stock) %>% 
+    left_join(advice_releases, by = c("AdviceDraftingGroup" = "ADG"))
+  
+  if(year == lubridate::year(Sys.Date())){
+    SID <- SID %>% 
+      filter(!(advice_release_date-preview_days) > Sys.Date() | is.na(advice_release_date))
+  }
   
   SAG <- mismatch_missing_in_SAG %>% 
-    join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
+    join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     left_join(selected_SAG_data, by = c("Stock" = "StockKeyLabel")) %>% 
     arrange(Stock)
 
   ASD <-  bind_rows(mismatches_SAG_ASD, missing_ASD) %>% as.data.frame() %>% 
-    join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
+    join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     filter(is.na(AssessmentYear) | AssessmentYear == YearOfLastAssessment | YearOfLastAssessment == 0) %>% 
     arrange(Stock)
 
@@ -131,6 +144,7 @@ check_stock_db_errors <- function(year) {
   
 
   return(issues)
+
 }
 
 

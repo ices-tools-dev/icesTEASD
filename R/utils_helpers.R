@@ -16,7 +16,7 @@
 #' @noRd
 #' @importFrom dplyr filter select full_join slice_max pull bind_rows arrange
 #' @importFrom rlang sym
-join_expert_group <- function(df, match_column = "StockKeyLabel", SID_data,  year) {
+join_expert_group <- function(df, match_column = "StockKeyLabel", SID_data) {
   
   key <- df[,match_column]
   SID_data_filtered <- filter(SID_data, StockKeyLabel %in% key)
