@@ -8,7 +8,7 @@
 #' @noRd
 #'
 #' @importFrom icesSAG getListStocks
-#' @importFrom dplyr filter select mutate bind_rows left_join full_join anti_join summarise n arrange across case_when if_any
+#' @importFrom dplyr filter rename select mutate bind_rows left_join full_join anti_join summarise n arrange across case_when if_any
 #' @importFrom glue glue
 #' @importFrom magrittr %>%
 #' @importFrom shiny validate need
@@ -26,10 +26,9 @@ check_stock_db_errors <- function(year) {
   SID_data <- unique(out)
 
     
-  SAG_data <- getSAG_complete(year = year) 
-  names(SAG_data)[names(SAG_data) == "FishStock"] <- "StockKeyLabel"
- 
-   
+  SAG_data_raw <- getSAG_complete(year = year) 
+  
+  
   years <- seq(year, year-3)
   ASD_data <- data.frame()
   for(i in years) {
@@ -44,14 +43,30 @@ check_stock_db_errors <- function(year) {
   
   validate(
     need(!is.null(SID_data), "SID not responding correctly"),
-    need(!is.null(SAG_data), "SAG not responding correctly"),
+    need(!is.null(SAG_data_raw), "SAG not responding correctly"),
     need(!is.null(ASD_data), "ASD not responding correctly")
   )
-  
-  SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
+
+ 
+  SAG_not_advice <- get_latest_SAG(SAG_data_raw) %>%
+    rename("StockKeyLabel" = "FishStock") %>% 
+    filter(Purpose == "Replaced")
+ 
+  SAG_advice_data <- SAG_data_raw %>% filter(Purpose == "Advice") %>% 
+    get_latest_SAG() %>%
+    rename("StockKeyLabel" = "FishStock")
   
   SID_selected_year <- SID_data %>%
     filter(YearOfLastAssessment == year)
+  
+ advice_replaced_stocks <- setdiff(SAG_not_advice$StockKeyLabel, SAG_advice_data$StockKeyLabel)
+ 
+ SAG_advice_replaced <- SAG_not_advice %>% filter(StockKeyLabel %in% advice_replaced_stocks) %>% 
+   mutate(Stock = StockKeyLabel,
+          Database = "SAG",
+          Issue = glue("SAG entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"),
+          .keep = "none"
+   )
   
   ASD_valid_advice_data <- filter(ASD_data, assessmentKey %in% SAG_advice_data$AssessmentKey, adviceStatus == "Advice")
   
@@ -78,7 +93,6 @@ check_stock_db_errors <- function(year) {
     mutate(Database = "SID",
       Issue = "Missing entry for the selected year"
     )
-  
 
   mismatch_missing_in_SAG <-
     data.frame(Stock = setdiff(SID_selected_year$StockKeyLabel, SAG_advice_data$StockKeyLabel)) %>%
@@ -86,9 +100,10 @@ check_stock_db_errors <- function(year) {
            Issue = "Missing entry in SAG and ASD for relevant assessment year")
   
 
-  mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
+
+  mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_advice_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
   
-  matched_SAG_ASD <- select(SAG_data, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear) %>% full_join(select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear), by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
+  matched_SAG_ASD <- select(SAG_advice_data, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear) %>% full_join(select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear), by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
   
   mismatches_SAG_ASD <- matched_SAG_ASD %>% filter(is.na(adviceStatus) | adviceStatus != "Advice") %>% 
     group_by(AssessmentYear, StockKeyLabel) %>% 
@@ -104,13 +119,14 @@ check_stock_db_errors <- function(year) {
            Issue = "Missing entry in SAG and ASD for relevant assessment year")
   
 
-  selected_SAG_data <- select(SAG_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
+  selected_SAG_data <- select(SAG_advice_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
   
   SID <- bind_rows(SID_errors, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
     arrange(Stock)
   
   SAG <- mismatch_missing_in_SAG %>% 
+    bind_rows(SAG_advice_replaced) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock", year = year) %>% 
     left_join(selected_SAG_data, by = c("Stock" = "StockKeyLabel")) %>% 
     arrange(Stock)

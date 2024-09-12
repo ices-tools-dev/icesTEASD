@@ -39,6 +39,7 @@ join_expert_group <- function(df, match_column = "StockKeyLabel", SID_data,  yea
 #'
 #' @examples
 getSAG_complete <- function(year){
+
   year <- as.numeric(year)
   years <- ((year-3):year)
   sid <- getSD(NULL,year)
@@ -57,11 +58,15 @@ getSAG_complete <- function(year){
     res<- unique(res)
     out <- rbind(out, res)
   }
+  out <- filter(out, FishStock %in% sid$StockKeyLabel)
+}
+
+
+get_latest_SAG <- function(df) {
   
-  out <- filter(out, Purpose == "Advice", FishStock %in% sid$StockKeyLabel)
-  out <- as.data.table(out) 
-  out <- out[out[, .I[AssessmentKey == max(AssessmentKey)], by=FishStock]$V1]
-  out <- out %>% group_by(FishStock) %>%
+  df <- as.data.table(df)
+  df <- df[df[, .I[AssessmentKey == max(AssessmentKey)], by=FishStock]$V1]
+  df <- df %>% group_by(FishStock) %>%
     filter(Year == max(Year))
-  out <- as.data.frame(out)
+  df <- as.data.frame(df)
 }
