@@ -52,7 +52,7 @@ get_stock_data <- function(year) {
               ASD_data=ASD_data))
 }
 
-check_stock_db_errors <- function(SID_data, SAG_data, ASD_data, year, preview_days){
+check_stock_db_errors <- function(SID_data, SAG_data, ASD_data, year){
   
   
   SAG_advice_data <- SAG_data %>% filter(Purpose == "Advice")
@@ -118,11 +118,6 @@ check_stock_db_errors <- function(SID_data, SAG_data, ASD_data, year, preview_da
     arrange(Stock) %>% 
     left_join(advice_releases, by = c("AdviceDraftingGroup" = "ADG"))
   
-  if(year == lubridate::year(Sys.Date())){
-    SID <- SID %>% 
-      filter(!(advice_release_date-preview_days) > Sys.Date() | is.na(advice_release_date))
-  }
-  
   SAG <- mismatch_missing_in_SAG %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     left_join(selected_SAG_data, by = c("Stock" = "StockKeyLabel")) %>% 
@@ -133,18 +128,8 @@ check_stock_db_errors <- function(SID_data, SAG_data, ASD_data, year, preview_da
     filter(is.na(AssessmentYear) | AssessmentYear == YearOfLastAssessment | YearOfLastAssessment == 0) %>% 
     arrange(Stock)
 
-  eg <- map_df(list(SID, SAG, ASD), ~ select(.x, ExpertGroup)) %>% 
-    summarise(.by = ExpertGroup, Count = n()) %>% 
-    arrange(desc(Count))
-  
-  issues <- list(SID = SID,
-                 SAG = SAG,
-                 ASD = ASD,
-                 issue_count = eg)
-  
-
-  return(issues)
+  return(list(SID = SID,
+              SAG = SAG,
+              ASD = ASD))
 
 }
-
-
