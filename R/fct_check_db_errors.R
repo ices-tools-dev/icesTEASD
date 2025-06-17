@@ -56,10 +56,9 @@ get_stock_data <- function(year) {
 
 check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
 
- 
   SAG_not_advice <- get_latest_SAG(SAG_data_raw) %>%
     rename("StockKeyLabel" = "FishStock") %>% 
-    filter(Purpose == "Replaced")
+    filter(Purpose != "Advice")
  
   SAG_advice_data <- SAG_data_raw %>% filter(Purpose == "Advice") %>% 
     get_latest_SAG() %>%
@@ -117,7 +116,8 @@ check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
     anti_join(ASD_valid_advice_data, by = c("StockKeyLabel" = "stockCode", "AssessmentYear" = "assessmentYear")) %>%
     mutate(Database = "ASD",
            Issue = case_when(adviceStatus == "Replaced" ~ glue("ASD entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"), 
-                                    is.na(adviceStatus) & Purpose == "Advice" ~ glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>% 
+                                    is.na(adviceStatus) & Purpose == "Advice" ~ glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>%
+    filter(is.na(adviceStatus) | adviceStatus != "Unofficial") %>% 
     select(Stock = StockKeyLabel, Database, AssessmentKey, AssessmentYear, Issue)
 
   

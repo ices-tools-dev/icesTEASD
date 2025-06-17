@@ -14,20 +14,20 @@ mod_db_checks_ui <- function(id){
     layout_sidebar(
       sidebar = sidebar(open = T, bg = "white", fg = "black", 
         uiOutput(outputId = ns("year_selector")),
+        uiOutput(ns("advice_preview")),
         actionButton(inputId = ns("check"), label = "Check for mismatches",
-                     class = "btn btn-primary"),
-        numericInput(ns("preview_days"), "Advice release 'preview' (days)", min = 0, max = 365, value = 7)
+                     class = "btn btn-primary")
       ),
       tabsetPanel(
         tabPanel("Overview",
                  card(
-                   card_header(bs_icon("wrench")),
+                   card_header("Issues"),
                      layout_column_wrap(
                        fill = T,
                        width = 1/3,  
                        value_box(
                          title = "SID",
-                         value = textOutput(ns("n_SID")),),
+                         value = textOutput(ns("n_SID"))),
                        value_box(
                          title = "SAG",
                          value = textOutput(ns("n_SAG")),
@@ -72,6 +72,13 @@ mod_db_checks_server <- function(id){
         default_year <- years[1]
       }
       selectInput(inputId = ns("year"), label = "Select year of advice validity", choices = years, selected = default_year, multiple = F, width = "100%")
+    })
+    
+    output$advice_preview <- renderUI({
+      req(input$year)
+        if(input$year ==year(Sys.Date())){
+          numericInput(ns("preview_days"), "Preview upcoming issues:\nADG end-date - n (days)", min = 0, max = 365, value = 7)
+        }
     })
 
     selected_year <- reactive({
