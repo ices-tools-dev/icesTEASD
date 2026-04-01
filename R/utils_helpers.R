@@ -16,18 +16,57 @@
 #' @noRd
 #' @importFrom dplyr filter select full_join slice_max pull bind_rows arrange
 #' @importFrom rlang sym
-#' @importFrom stats setNames
-join_expert_group <- function(df, match_column, SID_data,  year) {
-
+join_expert_group <- function(df, match_column = "StockKeyLabel", SID_data) {
+  
   key <- df[,match_column]
   SID_data_filtered <- filter(SID_data, StockKeyLabel %in% key)
 
   join_condition <- setNames("StockKeyLabel", match_column)
-  joined_data <- full_join(df, SID_data_filtered, by = join_condition)
-  current_year_matches <- filter(joined_data, YearOfLastAssessment == year)
-  unmatched <- filter(joined_data ,!(!!sym(match_column) %in% pull(current_year_matches, !!sym(match_column))))
-  latest_year_matches <- slice_max(unmatched, order_by = YearOfLastAssessment, n = 1)
+  joined_data <- full_join(df, SID_data_filtered, by = join_condition) 
+  
+}
 
-  bind_rows(current_year_matches, latest_year_matches) %>%
-    arrange(ExpertGroup)
+
+#' Title
+#'
+#' @param year 
+#'
+#' @return
+#' @export
+#' @import data.table
+#' @importFrom icesSD getSD
+#' @importFrom dplyr filter group_by
+#'
+#' @examples
+getSAG_complete <- function(year){
+
+  year <- as.numeric(year)
+  years <- ((year-3):year)
+  sid <- getSD(NULL,year)
+  out <- data.frame()
+  res <- data.frame()
+  for(n in 1:4){
+    x <- years[n]
+    url <- paste0("https://sag.ices.dk/SAG_API/api/SAGDownload?year=", x)
+    tmpSAG <- tempfile(fileext = ".zip")
+    download.file(url, destfile = tmpSAG, mode = "wb", quiet = FALSE)
+    names <-unzip(tmpSAG, list = TRUE)
+    res <- read.csv(unz(tmpSAG, names$Name[1]),
+                    stringsAsFactors = FALSE,
+                    header = TRUE,
+                    fill = TRUE)
+    res<- unique(res)
+    out <- rbind(out, res)
+  }
+  out <- filter(out, FishStock %in% sid$StockKeyLabel)
+}
+
+
+get_latest_SAG <- function(df) {
+  
+  df <- as.data.table(df)
+  df <- df[df[, .I[AssessmentKey == max(AssessmentKey)], by=FishStock]$V1]
+  df <- df %>% group_by(FishStock) %>%
+    filter(Year == max(Year))
+  df <- as.data.frame(df)
 }
