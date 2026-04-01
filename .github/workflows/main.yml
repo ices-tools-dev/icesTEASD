@@ -23,7 +23,7 @@ jobs:
         with:
           # account and application name (https://<accountName>.shinyapps.io/<appName>)
           appTitle: Assessment EG Secretariat Checks
-          appName: icesTEASD
+          appName: icesConsistenSEA
           accountName: ices-tools-dev
           appFiles: R,inst,man,NAMESPACE,DESCRIPTION,.Rbuildignore,app.R
 

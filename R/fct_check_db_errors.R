@@ -85,6 +85,18 @@ check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
     mutate(Database = "SID",
            Issue = "Please check Year of Next Assessment")
 
+  if(year == lubridate::year(Sys.Date())) {
+    
+    SID_ADG_error <- SID_data %>%
+      filter(YearOfNextAssessment <= year,
+             !AdviceDraftingGroup %in% advice_releases$ADG) %>% 
+    select(Stock = StockKeyLabel) %>%
+      mutate(Database = "SID",
+             Issue = "ADG info potentially incorrect")
+    
+  } else {
+    SID_ADG_error <- data.frame()
+  }
 
   detail_missing_in_SID <- SID_selected_year %>%
     select(StockKeyLabel, TrophicGuild, FisheriesGuild, SizeGuild) %>%
@@ -127,11 +139,10 @@ check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
   
 
   selected_SAG_data <- select(SAG_advice_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
-  
-  SID <- bind_rows(SID_errors, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
+  SID <- bind_rows(SID_errors, SID_ADG_error, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     arrange(Stock) %>% 
-    left_join(advice_releases, by = c("AdviceDraftingGroup" = "ADG"))
+    left_join(advice_releases_2026, by = c("AdviceDraftingGroup" = "ADG"))
   
   SAG <- mismatch_missing_in_SAG %>% 
     bind_rows(SAG_advice_replaced) %>% 
