@@ -53,52 +53,80 @@ get_stock_data <- function(year) {
 }
 
 
-
-check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
-
-  SAG_not_advice <- get_latest_SAG(SAG_data_raw) %>%
+prepare_SAG_not_advice <- function(SAG_data_raw){
+  get_latest_SAG(SAG_data_raw) %>%
     rename("StockKeyLabel" = "FishStock") %>% 
     filter(Purpose != "Advice")
- 
-  SAG_advice_data <- SAG_data_raw %>% filter(Purpose == "Advice") %>% 
+}
+
+prepare_SAG_advice <- function(SAG_data_raw){
+  SAG_data_raw %>% filter(Purpose == "Advice") %>% 
     get_latest_SAG() %>%
     rename("StockKeyLabel" = "FishStock")
-  
-  SID_selected_year <- SID_data %>%
-    filter(YearOfLastAssessment == year)
-  
- advice_replaced_stocks <- setdiff(SAG_not_advice$StockKeyLabel, SAG_advice_data$StockKeyLabel)
- 
- SAG_advice_replaced <- SAG_not_advice %>% filter(StockKeyLabel %in% advice_replaced_stocks) %>% 
+}
+
+prepare_SID_selected_year <- function(SID_data, advice_validity_year){
+  SID_data %>%
+    filter(YearOfLastAssessment == advice_validity_year)
+}
+
+prepare_ASD_valid_advice <- function(ASD_data, SAG_advice){
+  filter(ASD_data, assessmentKey %in% SAG_advice$AssessmentKey, adviceStatus == "Advice")
+}
+
+prepare_SAG_ASD_matched <- function(SAG_advice, ASD_data){
+  SAG_reduced <- select(SAG_advice, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear)
+  ASD_reduced <- select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear)
+  full_join(SAG_reduced,
+            ASD_reduced,
+            by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
+}
+
+empty_issue_df <- function() {
+  data.frame(
+    Stock = character(),
+    Database = character(),
+    Issue = character()
+  )
+}
+
+check_SAG_advice_replaced <- function(SAG_advice, SAG_not_advice){
+ advice_replaced_stocks <- setdiff(SAG_not_advice$StockKeyLabel, SAG_advice$StockKeyLabel)
+ SAG_not_advice %>% filter(StockKeyLabel %in% advice_replaced_stocks) %>% 
    mutate(Stock = StockKeyLabel,
           Database = "SAG",
           Issue = glue("SAG entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"),
           .keep = "none"
-   )
-  
-  ASD_valid_advice_data <- filter(ASD_data, assessmentKey %in% SAG_advice_data$AssessmentKey, adviceStatus == "Advice")
-  
-  SID_errors <-
-    SID_data %>%
-    filter(YearOfNextAssessment <= year) %>%
+   ) 
+ 
+}
+
+check_SID_next_assessment_in_past <- function(SID_data, advice_validity_year) {
+  SID_data %>%
+    filter(YearOfNextAssessment <= advice_validity_year) %>%
     select(Stock = StockKeyLabel) %>%
     mutate(Database = "SID",
            Issue = "Please check Year of Next Assessment")
+}
 
-  if(year == lubridate::year(Sys.Date())) {
-    
-    SID_ADG_error <- SID_data %>%
-      filter(YearOfNextAssessment <= year,
+check_SID_current_year_ADG_invalid <- function(SID_data, advice_validity_year, advice_releases){
+  
+  current_year <- lubridate::year(Sys.Date())
+  if (advice_validity_year != current_year) {
+    return(empty_issue_df())
+  }
+  
+  SID_data %>%
+      filter(YearOfNextAssessment <= advice_validity_year,
              !AdviceDraftingGroup %in% advice_releases$ADG) %>% 
-    select(Stock = StockKeyLabel) %>%
+      select(Stock = StockKeyLabel) %>%
       mutate(Database = "SID",
              Issue = "ADG info potentially incorrect")
-    
-  } else {
-    SID_ADG_error <- data.frame()
-  }
+}
 
-  detail_missing_in_SID <- SID_selected_year %>%
+check_SID_guild_information_present_valid <- function(SID_selected_year){
+  #Could /should be SID_data as a whole?
+  SID_selected_year %>% 
     select(StockKeyLabel, TrophicGuild, FisheriesGuild, SizeGuild) %>%
     mutate(Stock = StockKeyLabel,
            Database = "SID",
@@ -107,56 +135,78 @@ check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, year){
                              .default = NA)) %>% 
     filter(!is.na(Issue)) %>% 
     select(Stock, Database, Issue)
+  
+} 
 
-  mismatch_missing_in_SID <-
-    data.frame(Stock = setdiff(SAG_advice_data$StockKeyLabel, SID_data$StockKeyLabel)) %>%
-    mutate(Database = "SID",
-      Issue = "Missing entry for the selected year"
-    )
+check_SID_missing_entry <- function(SID_data, SAG_advice) {
+  
+  data.frame(Stock = setdiff(SAG_advice$StockKeyLabel, SID_data$StockKeyLabel)) %>%
+  mutate(Database = "SID",
+    Issue = "Missing entry for the selected year"
+  )
+}
 
-  mismatch_missing_in_SAG <-
-    data.frame(Stock = setdiff(SID_selected_year$StockKeyLabel, SAG_advice_data$StockKeyLabel)) %>%
+
+# 1. Why does this use SID_selected_year whilst check_SID_missing_entry is SID_data
+# 2. Does it need to be split and a separate check for ASD be made?
+# 3. Following code removed - seemingly served no purpose: 
+#      - SAG_missing_entry[SAG_missing_entry$Stock %in% SAG_advice$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
+check_SAG_missing_entry <- function(SID_selected_year, SAG_advice) {
+  data.frame(Stock = setdiff(SID_selected_year$StockKeyLabel, SAG_advice$StockKeyLabel)) %>%
     mutate(Database = "SAG", 
            Issue = "Missing entry in SAG and ASD for relevant assessment year")
-  
-  mismatch_missing_in_SAG[mismatch_missing_in_SAG$Stock %in% SAG_advice_data$StockKeyLabel,] <- "No SAG entry with Purpose == Advice"
-  
-  matched_SAG_ASD <- select(SAG_advice_data, StockKeyLabel, AssessmentKey, Purpose, AssessmentYear) %>% full_join(select(ASD_data, adviceViewPublished, stockCode, adviceStatus, assessmentKey, assessmentYear), by = c("StockKeyLabel"="stockCode", "AssessmentYear"="assessmentYear", "AssessmentKey"="assessmentKey"))
-  
-  mismatches_SAG_ASD <- matched_SAG_ASD %>% filter(is.na(adviceStatus) | adviceStatus != "Advice") %>% 
+}                                                     
+
+check_ASD_missing_entry_vs_SAG <- function(SAG_ASD_matched, ASD_valid_advice){
+  SAG_ASD_matched %>% filter(is.na(adviceStatus) | adviceStatus != "Advice") %>% 
     group_by(AssessmentYear, StockKeyLabel) %>% 
-    anti_join(ASD_valid_advice_data, by = c("StockKeyLabel" = "stockCode", "AssessmentYear" = "assessmentYear")) %>%
+    anti_join(ASD_valid_advice, by = c("StockKeyLabel" = "stockCode", "AssessmentYear" = "assessmentYear")) %>%
     mutate(Database = "ASD",
            Issue = case_when(adviceStatus == "Replaced" ~ glue("ASD entry {AssessmentKey} has status 'Replaced' with no valid alternative in {AssessmentYear}"), 
-                                    is.na(adviceStatus) & Purpose == "Advice" ~ glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>%
-    filter(is.na(adviceStatus) | adviceStatus != "Unofficial") %>% 
+                             is.na(adviceStatus) & Purpose == "Advice" ~ glue("No published entry in ASD for assessment {AssessmentKey} in {AssessmentYear} "))) %>%
+    filter(is.na(adviceStatus) | adviceStatus != "Unofficial" | !is.na(Issue)) %>% 
     select(Stock = StockKeyLabel, Database, AssessmentKey, AssessmentYear, Issue)
-
   
-  missing_ASD <- data.frame(Stock = mismatch_missing_in_SAG[mismatch_missing_in_SAG$Issue == "Missing entry in SAG and ASD for relevant assessment year", "Stock"]) %>% 
-    mutate(Database = "ASD",
-           Issue = "Missing entry in SAG and ASD for relevant assessment year")
+}
+check_stock_db_errors <- function(SID_data, SAG_data_raw, ASD_data, advice_validity_year){
+
+  SAG_not_advice <- prepare_SAG_not_advice(SAG_data_raw)
+  SAG_advice <- prepare_SAG_advice(SAG_data_raw)
+  SID_selected_year <- prepare_SID_selected_year(SID_data, advice_validity_year = advice_validity_year)
+  ASD_valid_advice <- prepare_ASD_valid_advice(ASD_data, SAG_advice)
+  SAG_ASD_matched <- prepare_SAG_ASD_matched(SAG_advice, ASD_data)
   
 
-  selected_SAG_data <- select(SAG_advice_data, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
-  SID <- bind_rows(SID_errors, SID_ADG_error, mismatch_missing_in_SID, detail_missing_in_SID) %>% 
+  SID_next_assessment_in_past <- check_SID_next_assessment_in_past(SID_data, advice_validity_year)
+  SID_current_year_ADG_invalid <- check_SID_current_year_ADG_invalid(SID_data, advice_validity_year, advice_releases)
+  SID_guild_detail_missing_invalid <- check_SID_guild_information_present_valid(SID_selected_year)
+  SID_missing_entry <- check_SID_missing_entry(SID_data, SAG_advice)
+  SID_errors <- bind_rows(SID_next_assessment_in_past, SID_current_year_ADG_invalid, SID_missing_entry, SID_guild_detail_missing_invalid) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     arrange(Stock) %>% 
-    left_join(advice_releases_2026, by = c("AdviceDraftingGroup" = "ADG"))
+    left_join(advice_releases, by = c("AdviceDraftingGroup" = "ADG"))
   
-  SAG <- mismatch_missing_in_SAG %>% 
-    bind_rows(SAG_advice_replaced) %>% 
+  selected_SAG_data <- select(SAG_advice, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
+  SAG_advice_replaced <- check_SAG_advice_replaced(SAG_advice, SAG_not_advice)
+  SAG_missing_entry <- check_SAG_missing_entry(SID_selected_year, SAG_advice)
+  
+  SAG_errors <- bind_rows(SAG_advice_replaced, SAG_missing_entry) %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     left_join(selected_SAG_data, by = c("Stock" = "StockKeyLabel")) %>% 
     arrange(Stock)
-
-  ASD <-  bind_rows(mismatches_SAG_ASD, missing_ASD) %>% as.data.frame() %>% 
+  
+  ASD_missing_entry_vs_SAG <- check_ASD_missing_entry_vs_SAG(SAG_ASD_matched, ASD_valid_advice)
+  ASD_missing_entry <- data.frame(Stock = SAG_missing_entry[SAG_missing_entry$Issue == "Missing entry in SAG and ASD for relevant assessment year", "Stock"]) %>% 
+    mutate(Database = "ASD",
+           Issue = "Missing entry in SAG and ASD for relevant assessment year")
+  ASD_errors <-  bind_rows(ASD_missing_entry_vs_SAG, ASD_missing_entry) %>% as.data.frame() %>% 
     join_expert_group(SID_data = SID_data, match_column = "Stock") %>% 
     filter(is.na(AssessmentYear) | AssessmentYear == YearOfLastAssessment | YearOfLastAssessment == 0) %>% 
     arrange(Stock)
+  
 
-  return(list(SID = SID,
-              SAG = SAG,
-              ASD = ASD))
+  return(list(SID = SID_errors,
+              SAG = SAG_errors,
+              ASD = ASD_errors))
 
 }

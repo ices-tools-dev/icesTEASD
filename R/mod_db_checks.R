@@ -99,7 +99,7 @@ mod_db_checks_server <- function(id){
       issues <-check_stock_db_errors(stock_data()$SID_data,
                                      stock_data()$SAG_data_raw,
                                      stock_data()$ASD_data,
-                                     year = selected_year())
+                                     advice_validity_year = selected_year())
     }) %>% bindEvent(input$check)
     
     
