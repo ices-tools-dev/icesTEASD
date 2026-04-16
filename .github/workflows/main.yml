@@ -25,8 +25,8 @@ jobs:
           appTitle: Assessment EG Secretariat Checks
           appName: icesConsistenSEA
           accountName: ices-tools-dev
-          appFiles: R,inst,man,NAMESPACE,DESCRIPTION,.Rbuildignore,app.R
-
+          appFiles: R,data, inst,man,NAMESPACE,DESCRIPTION,.Rbuildignore,app.R
+          forceUpdate: TRUE
           # token and secret obtained from https://www.shinyapps.io/admin/#/tokens
           accountToken: ${{ secrets.SHINYAPPS_TOKEN }}
           accountSecret: ${{ secrets.SHINYAPPS_SECRET }}
