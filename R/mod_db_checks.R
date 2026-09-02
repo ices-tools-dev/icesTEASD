@@ -5,9 +5,13 @@
 #' @param id,input,output,session Internal parameters for {shiny}.
 #' @noRd
 #'
-#' @importFrom shiny NS tagList
+#' @import dplyr
+#' @importFrom shiny NS tagList renderUI reactive bindEvent req renderText selectInput
+#' @importFrom DT renderDT renderDataTable datatable
+#' @importFrom lubridate year month
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom bslib layout_sidebar sidebar
+#' @importFrom lubridate year
 mod_db_checks_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -84,31 +88,44 @@ mod_db_checks_server <- function(id){
     selected_year <- reactive({
       req(input$check)
       as.numeric(input$year)
-    }) %>% bindEvent(input$check) 
+    })
     
     
-    stock_data <- reactive({
+    stock_db_data <- reactive({
     
       data <- get_stock_data(as.numeric(input$year))
       
-    }) %>% bindEvent(input$check)
+    })
+    
+    prepped_data <- reactive({
+      req(!is.null(stock_db_data()))
+      
+      data <- prepare_stock_data(stock_db_data()$SID_data,
+                                 stock_db_data()$SAG_data_raw,
+                                 stock_db_data()$ASD_data,
+                                 advice_validity_year = selected_year())
+    })
 
     
     checks_data <- reactive({
-      req(!is.null(stock_data()))
-      issues <-check_stock_db_errors(stock_data()$SID_data,
-                                     stock_data()$SAG_data_raw,
-                                     stock_data()$ASD_data,
+      req(!is.null(prepped_data()))
+      issues <-check_stock_db_errors(SID_data = prepped_data()$SID_data, 
+                                     SID_selected_year = prepped_data()$SID_selected_year,
+                                     SAG_advice = prepped_data()$SAG_advice,
+                                     SAG_not_advice = prepped_data()$SAG_not_advice,
+                                     ASD_valid_advice = prepped_data()$ASD_valid_advice,
+                                     SAG_ASD_matched = prepped_data()$SAG_ASD_matched,
                                      advice_validity_year = selected_year())
     }) %>% bindEvent(input$check)
     
     
     checks_data_filtered <- reactive({
+      req(!is.null(checks_data()))
       dat <- list(SID = checks_data()$SID,
                   SAG = checks_data()$SAG,
                   ASD = checks_data()$ASD)
                   
-        if(selected_year() == lubridate::year(Sys.Date())){
+        if(selected_year() == year(Sys.Date())){
           dat$SID <- dat$SID %>% 
             filter(!(advice_release_date-as.numeric(input$preview_days)) > Sys.Date() | is.na(advice_release_date))
         }
@@ -121,64 +138,7 @@ mod_db_checks_server <- function(id){
     })
 
     
-    output$EG_table <- renderDT({
-      req(!is.null(checks_data_filtered()))
-      
-      datatable(checks_data_filtered()$issue_count, options = list(pageLength = 20, 
-                                      dom = "tip", 
-                                      lengthMenu = c(5, 10, 15, 20)),
-                    rownames = FALSE)
-    })
-
-
-    output$SID <- renderDT({
-       req(!is.null(checks_data_filtered()$SID))
-      detail_df <- select(checks_data_filtered()$SID, Stock, Issue, "Expert Group" = ExpertGroup, "Year Of Last Assessment" = YearOfLastAssessment, "Year Of Next Assessment" = YearOfNextAssessment)
-      
-      datatable(detail_df,filter = "top",
-                            options = list(pageLength = 20,
-                                           dom = "tip",
-                                           lengthMenu = c(5, 10, 15, 20)),
-                                rownames = FALSE)
-    })
-
-        
-    output$SAG <- renderDT({
-       req(!is.null(checks_data_filtered()$SAG))
-
-      detail_df <- select(checks_data_filtered()$SAG, Stock, 
-                          "Assessment Key" = AssessmentKey.x,
-                          Issue,
-                          "Expert Group" = ExpertGroup,
-                          "Year Of Last Assessment" = YearOfLastAssessment)
-      
-      datatable(detail_df,filter = "top",
-                            options = list(pageLength = 20,
-                                           dom = "tip",
-                                           lengthMenu = c(5, 10, 15, 20)),
-                                rownames = FALSE)
-    })
-    
-    
-    output$ASD <- renderDT({
-       req(!is.null(checks_data_filtered()$ASD))
-
-      detail_df <- select(checks_data_filtered()$ASD, 
-                          Stock, 
-                          "Assessment Key" = AssessmentKey.x,
-                          Issue, 
-                          "Expert Group" = ExpertGroup, 
-                          "Year Of Last Assessment" = YearOfLastAssessment)
-      
-      datatable(detail_df,filter = "top",
-                            options = list(pageLength = 20,
-                                           dom = "tip",
-                                           lengthMenu = c(5, 10, 15, 20)),
-                                rownames = FALSE)
-    })
-
-    
-    
+    ######### Outputs #########
     output$n_SID <- renderText({
       req(!is.null(checks_data_filtered()$SID))
       nrow(checks_data_filtered()$SID)
@@ -194,11 +154,51 @@ mod_db_checks_server <- function(id){
       nrow(checks_data_filtered()$ASD)
     })
     
+    output$EG_table <- renderDT({
+      req(!is.null(checks_data_filtered()))
+      datatable(checks_data_filtered()$issue_count, options = list(pageLength = 20, 
+                                      dom = "tip", 
+                                      lengthMenu = c(5, 10, 15, 20)),
+                    rownames = FALSE)
+    })
+
+    output$SID <- renderDT({
+      req(!is.null(checks_data_filtered()$SID))
+      detail_df <- select(checks_data_filtered()$SID, Stock, Issue, "Expert Group" = ExpertGroup, "Year Of Last Assessment" = YearOfLastAssessment, "Year Of Next Assessment" = YearOfNextAssessment)
+      datatable(detail_df,filter = "top",
+                            options = list(pageLength = 20,
+                                           dom = "tip",
+                                           lengthMenu = c(5, 10, 15, 20)),
+                                rownames = FALSE)
+    })
+
+    output$SAG <- renderDT({
+      req(!is.null(checks_data_filtered()$SAG))
+      detail_df <- select(checks_data_filtered()$SAG, Stock, 
+                          "Assessment Key" = AssessmentKey.x,
+                          Issue,
+                          "Expert Group" = ExpertGroup,
+                          "Year Of Last Assessment" = YearOfLastAssessment)
+      datatable(detail_df,filter = "top",
+                            options = list(pageLength = 20,
+                                           dom = "tip",
+                                           lengthMenu = c(5, 10, 15, 20)),
+                                rownames = FALSE)
+    })
+    
+    output$ASD <- renderDT({
+      req(!is.null(checks_data_filtered()$ASD))
+      detail_df <- select(checks_data_filtered()$ASD, 
+                          Stock, 
+                          "Assessment Key" = AssessmentKey.x,
+                          Issue, 
+                          "Expert Group" = ExpertGroup, 
+                          "Year Of Last Assessment" = YearOfLastAssessment)
+      datatable(detail_df,filter = "top",
+                            options = list(pageLength = 20,
+                                           dom = "tip",
+                                           lengthMenu = c(5, 10, 15, 20)),
+                                rownames = FALSE)
+    })
   })
 }
-
-## To be copied in the UI
-# mod_db_checks_ui("db_checks_1")
-
-## To be copied in the server
-# mod_db_checks_server("db_checks_1")
