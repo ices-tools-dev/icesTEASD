@@ -1,4 +1,4 @@
-# icesConsistenSEA
+# icesConsistenSEA (formally icesTEASD)
 Shiny App that tests three connected aspects of stock data: completeness in SID, availability of assessments in SAG, and availability of corresponding published advice in ASD.
 
 ## Database consistency checks
