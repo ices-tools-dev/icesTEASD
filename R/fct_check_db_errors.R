@@ -471,9 +471,9 @@ check_stock_db_errors <- function(SID_data,
   selected_SAG_data <- select(SAG_advice, AssessmentKey, "Assessment Year" = AssessmentYear, StockKeyLabel)
   SAG_advice_replaced <- check_SAG_advice_replaced(SAG_advice, SAG_not_advice)
   
-  ### Need to resolve!
+  ### Probably correct as is, but under review
   SAG_missing_entry <- check_SAG_missing_entry(SID_selected_year, SAG_advice)
-  alt_SAG_missing_entry <- check_SAG_missing_entry(SID_data, SAG_advice)
+  #alt_SAG_missing_entry <- check_SAG_missing_entry(SID_data, SAG_advice)
   ###
   
   SAG_errors <- bind_rows(SAG_advice_replaced, SAG_missing_entry) %>% 
